@@ -96,6 +96,7 @@ export class LoggerWithoutCallSite {
         compact: true,
         depth: Infinity,
       },
+      inspectArgumentsArray: true,
       delimiter: " ",
       dateTimePattern: undefined,
       // local timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
@@ -853,14 +854,21 @@ export class LoggerWithoutCallSite {
                 errorObject.nativeError
               ),
             } as IErrorObjectStringifiable;
-          } else if (typeof argument === "object") {
+          }
+          if (!this.settings.inspectArgumentsArray) {
+            return LoggerHelper.toMaskedJSON(
+              argument,
+              this.settings.maskValuesOfKeys,
+              this.settings.maskPlaceholder
+            );
+          }
+          if (typeof argument === "object") {
             return this._inspectAndHideSensitive(
               argument,
               this.settings.jsonInspectOptions
             );
-          } else {
-            return this._formatAndHideSensitive(argument);
           }
+          return this._formatAndHideSensitive(argument);
         }
       ),
     };

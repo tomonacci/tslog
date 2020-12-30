@@ -275,6 +275,51 @@ export class LoggerHelper {
       : `${lineNumber}`;
   }
 
+  public static toMaskedJSON(
+    obj: unknown,
+    maskKeys: (string | number)[] = [],
+    maskPlaceholder: string = "[***]",
+    breakCircularReferences: boolean = true,
+    circularPlaceholder: unknown = "[Circular]"
+  ): unknown {
+    const lowerCaseMaskKeys = new Set(
+      maskKeys.map((s) => s.toString().toLowerCase())
+    );
+    const parents = new Map<object, object>();
+    const rec = (obj0: unknown, key: string): unknown => {
+      const obj =
+        typeof obj0 === "object" &&
+        obj0 !== null &&
+        typeof obj0["toJSON"] === "function" // eslint-disable-line dot-notation
+          ? obj0["toJSON"](key) // eslint-disable-line dot-notation
+          : obj0;
+      if (typeof obj === "object" && obj !== null) {
+        if (parents.has(obj))
+          return breakCircularReferences
+            ? circularPlaceholder
+            : parents.get(obj);
+        if (Array.isArray(obj)) {
+          const cloneArray: unknown[] = [];
+          parents.set(obj, cloneArray);
+          obj.forEach((e, i) => cloneArray.push(rec(e, i.toString())));
+          parents.delete(obj);
+          return cloneArray;
+        }
+        const clone = {};
+        parents.set(obj, clone);
+        Object.keys(obj).forEach((key) => {
+          if (lowerCaseMaskKeys.has(key.toLowerCase()))
+            clone[key] = maskPlaceholder;
+          else clone[key] = rec(obj[key], key);
+        });
+        parents.delete(obj);
+        return clone;
+      }
+      return obj;
+    };
+    return rec(obj, "");
+  }
+
   public static cloneObjectRecursively<T>(
     obj: T,
     maskValuesFn?: (key: number | string, value: unknown) => unknown,

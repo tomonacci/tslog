@@ -98,6 +98,9 @@ export interface ISettingsParam {
   /**  Options to be set for utils._inspectAndHideSensitive when output is set to json (\{ type: "json" \}) */
   jsonInspectOptions?: InspectOptions;
 
+  /** Whether to inspect ILogObject.argumentsArray */
+  inspectArgumentsArray?: boolean;
+
   /** Determines the delimiter when pretty printing, default: space */
   delimiter?: string;
 
@@ -179,6 +182,7 @@ export interface ISettings extends ISettingsParam {
   prettyInspectHighlightStyles: IHighlightStyles;
   prettyInspectOptions: InspectOptions;
   jsonInspectOptions: InspectOptions;
+  inspectArgumentsArray: boolean;
   delimiter: string;
   dateTimePattern?: string;
   dateTimeTimezone?: string;
@@ -266,7 +270,7 @@ export interface ILogObject extends IStackFrame {
  * @public
  */
 export interface ILogObjectStringifiable extends ILogObject {
-  argumentsArray: (IErrorObjectStringifiable | string)[];
+  argumentsArray: unknown[];
 }
 
 /**
